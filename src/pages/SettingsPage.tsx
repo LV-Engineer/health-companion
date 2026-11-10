@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { profileQueryKey } from '@/hooks/useProfile';
 import { Loader2, User, Mail, KeyRound } from 'lucide-react';
 import { KnowledgeBaseManager } from '@/components/settings/KnowledgeBaseManager';
 
@@ -15,6 +17,7 @@ const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -48,12 +51,14 @@ const SettingsPage: React.FC = () => {
     setSavingProfile(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ display_name: displayName })
+      .update({ display_name: displayName.trim() })
       .eq('user_id', user.id);
     setSavingProfile(false);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
+      // Refresh the name shown in the user menu right away.
+      queryClient.invalidateQueries({ queryKey: profileQueryKey(user.id) });
       toast({ title: 'Profile updated', description: 'Your changes have been saved.' });
     }
   };
