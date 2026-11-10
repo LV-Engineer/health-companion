@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { UserDropdown } from './UserDropdown';
-import { Profile } from '@/hooks/useAuth';
 import { Stethoscope, PanelLeft, PanelLeftClose } from 'lucide-react';
 import {
   Tooltip,
@@ -16,7 +15,6 @@ interface AppShellProps {
   onBack?: () => void;
   backTooltip?: string;
   rightAction?: React.ReactNode;
-  onSwitchUser?: (profile: Profile) => void;
   sidebar?: React.ReactNode;
   sidebarOpen?: boolean;
   onToggleSidebar?: () => void;
@@ -29,7 +27,6 @@ export const AppShell: React.FC<AppShellProps> = ({
   onBack,
   backTooltip = "Go back to entry screen",
   rightAction,
-  onSwitchUser,
   sidebar,
   sidebarOpen,
   onToggleSidebar
@@ -100,7 +97,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           
           <div className="flex items-center gap-2">
             {rightAction}
-            {!sidebar && <UserDropdown onSwitchUser={onSwitchUser} />}
+            {!sidebar && <UserDropdown />}
           </div>
         </div>
       </header>
