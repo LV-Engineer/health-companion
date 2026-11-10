@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
 
 interface UserDropdownProps {
   variant?: 'header' | 'sidebar';
@@ -20,7 +19,6 @@ interface UserDropdownProps {
 export const UserDropdown: React.FC<UserDropdownProps> = ({ variant = 'header' }) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { data: profile } = useProfile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -36,8 +34,6 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ variant = 'header' }
   }
 
   const isSidebar = variant === 'sidebar';
-  // Show the name the user chose in Profile; fall back to the email until it is set.
-  const displayName = profile?.display_name?.trim() || user.email;
 
   return (
     <DropdownMenu>
@@ -48,7 +44,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ variant = 'header' }
               <User className="w-3.5 h-3.5 text-primary" />
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-medium truncate">{displayName}</p>
+              <p className="text-sm font-medium truncate">{user.email}</p>
               <p className="text-[10px] text-muted-foreground leading-none mt-0.5">Profile</p>
             </div>
             <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -56,7 +52,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({ variant = 'header' }
         ) : (
           <Button variant="ghost" size="sm" className="gap-2">
             <User className="w-4 h-4" />
-            <span className="hidden sm:inline max-w-[120px] truncate">{displayName}</span>
+            <span className="hidden sm:inline max-w-[120px] truncate">{user.email}</span>
             <ChevronDown className="w-3 h-3" />
           </Button>
         )}
