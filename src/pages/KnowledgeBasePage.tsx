@@ -12,6 +12,8 @@ const KnowledgeBasePage: React.FC = () => {
 
   return (
     <AppShell title="Knowledge Base" showBack onBack={handleBack} backTooltip="Go back to chat">
+      {/* AppShell's main area is overflow-hidden, so the page must scroll itself. */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
       <div className="container max-w-2xl mx-auto py-8 px-4 space-y-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">Knowledge Base</h1>
@@ -27,6 +29,7 @@ const KnowledgeBasePage: React.FC = () => {
             Done
           </Button>
         </div>
+      </div>
       </div>
     </AppShell>
   );
