@@ -68,7 +68,9 @@ export const ChatHistorySidebar: React.FC<ChatHistorySidebarProps> = ({
       </div>
 
       {/* Sessions List */}
-      <ScrollArea className={cn("flex-1", !isOpen && "hidden")}>
+      {/* Radix wraps the content in a `display: table` div that grows with long text, which defeats
+          `truncate`. Forcing it to block keeps titles and previews inside the sidebar width. */}
+      <ScrollArea className={cn("flex-1 [&>[data-radix-scroll-area-viewport]>div]:!block", !isOpen && "hidden")}>
         <div className="p-3 space-y-1">
           {sessions.map((session) => (
             <button

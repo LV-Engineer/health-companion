@@ -19,7 +19,7 @@ export interface ChatMessageRow {
 
 const SESSION_FIELDS = 'id, title, preview, created_at, updated_at';
 const MESSAGE_FIELDS = 'id, role, content, created_at';
-const DEFAULT_TITLE = 'New chat';
+export const DEFAULT_TITLE = 'New chat';
 
 /**
  * Chat history lives in the database: one row per conversation in
