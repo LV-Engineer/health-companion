@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { MarkdownMessage } from '@/components/chat/MarkdownMessage';
 import { ChatHistorySidebar } from '@/components/chat/ChatHistorySidebar';
-import { Send, Loader2, History, Sparkles } from 'lucide-react';
+import { Send, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -222,18 +222,6 @@ const ChatView: React.FC = () => {
       onToggleSidebar={() => setHistoryOpen(!historyOpen)}
     >
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full overflow-hidden">
-        <div className="px-3 py-1.5 border-b border-border flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setHistoryOpen(!historyOpen)}
-            className="h-7 w-7 flex-shrink-0"
-            title={historyOpen ? 'Hide chat history' : 'Show chat history'}
-          >
-            <History className="w-4 h-4" />
-          </Button>
-        </div>
-
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-4">
           {loadingMessages ? (
             <div className="flex items-center justify-center py-12">
