@@ -27,12 +27,6 @@ const SettingsPage: React.FC = () => {
   const [sendingReset, setSendingReset] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
       const { data } = await supabase
@@ -111,6 +105,8 @@ const SettingsPage: React.FC = () => {
 
   return (
     <AppShell title="Profile" showBack onBack={handleBack} backTooltip="Go back to chat">
+      {/* AppShell's main area is overflow-hidden, so the page must scroll itself. */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
       <div className="container max-w-2xl mx-auto py-8 px-4 space-y-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
@@ -202,6 +198,7 @@ const SettingsPage: React.FC = () => {
             Done
           </Button>
         </div>
+      </div>
       </div>
     </AppShell>
   );
