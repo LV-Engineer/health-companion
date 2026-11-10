@@ -20,7 +20,7 @@ interface Message {
 }
 
 const GREETING =
-  "Hi! Ask me anything. I'll answer in formatted markdown (with tables when useful). If you've uploaded files to your knowledge base in **Account → Profile**, I'll use them to ground my answers.";
+  "Hi! Ask me anything. I'll answer in formatted markdown (with tables when useful). If you've uploaded files to your knowledge base on the **Knowledge Base** page (or in your **Profile**), I'll use them to ground my answers.";
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
