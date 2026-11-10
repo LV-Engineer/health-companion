@@ -72,6 +72,11 @@ export const ChatHistorySidebar: React.FC<ChatHistorySidebarProps> = ({
           `truncate`. Forcing it to block keeps titles and previews inside the sidebar width. */}
       <ScrollArea className={cn("flex-1 [&>[data-radix-scroll-area-viewport]>div]:!block", !isOpen && "hidden")}>
         <div className="p-3 space-y-1">
+          {sessions.length === 0 && (
+            <div className="px-3 py-8 text-center text-sm text-muted-foreground">
+              No conversations yet. Start one with the + button.
+            </div>
+          )}
           {sessions.map((session) => (
             <button
               key={session.id}
