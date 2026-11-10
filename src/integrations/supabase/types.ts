@@ -39,13 +39,228 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          preview: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          preview?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          preview?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rag_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          file_id: string
+          fts: unknown
+          id: string
+          user_id: string
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          file_id: string
+          fts?: unknown
+          id?: string
+          user_id: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          file_id?: string
+          fts?: unknown
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rag_chunks_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "rag_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rag_files: {
+        Row: {
+          chunk_count: number
+          created_at: string
+          error_message: string | null
+          file_name: string
+          id: string
+          mime_type: string
+          size_bytes: number
+          status: string
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chunk_count?: number
+          created_at?: string
+          error_message?: string | null
+          file_name: string
+          id?: string
+          mime_type: string
+          size_bytes?: number
+          status?: string
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chunk_count?: number
+          created_at?: string
+          error_message?: string | null
+          file_name?: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          status?: string
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          auto_suggestions: boolean
+          created_at: string
+          creativity_level: number
+          enhance_prompt_template: string
+          id: string
+          preferred_persona: string | null
+          response_length: string
+          search_depth: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_suggestions?: boolean
+          created_at?: string
+          creativity_level?: number
+          enhance_prompt_template?: string
+          id?: string
+          preferred_persona?: string | null
+          response_length?: string
+          search_depth?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_suggestions?: boolean
+          created_at?: string
+          creativity_level?: number
+          enhance_prompt_template?: string
+          id?: string
+          preferred_persona?: string | null
+          response_length?: string
+          search_depth?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_rag_chunks: {
+        Args: { match_count?: number; q: string }
+        Returns: {
+          content: string
+          file_id: string
+          id: string
+          rank: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
