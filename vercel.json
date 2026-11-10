@@ -5,9 +5,13 @@
       "maxDuration": 60
     }
   },
+  "proxy": {
+    "entrypoint": "proxy.ts",
+    "matcher": ["/chat/:path*", "/settings/:path*", "/knowledge-base/:path*"]
+  },
   "rewrites": [
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|src/|node_modules/|@).*)",
       "destination": "/index.html"
     }
   ]
