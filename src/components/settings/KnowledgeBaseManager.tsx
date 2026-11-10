@@ -19,6 +19,11 @@ interface RagFile {
   storage_path: string;
 }
 
+const BUCKET = "knowledge-base";
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
+// Keep in sync with api/ingest.ts: the function body is capped, so only the start of huge files is indexed.
+const MAX_TEXT_CHARS = 500_000;
+
 const ACCEPTED =
   ".txt,.md,.csv,.json,.pdf,.docx,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -63,22 +68,29 @@ export const KnowledgeBaseManager: React.FC = () => {
     setUploading(true);
     for (const file of filesToUpload) {
       try {
-        if (file.size > 20 * 1024 * 1024) {
+        if (file.size > MAX_FILE_BYTES) {
           toast({ title: `${file.name} too large`, description: "Max 20MB per file.", variant: "destructive" });
           continue;
         }
 
         // Extract text first (fail fast for unsupported types)
         toast({ title: "Reading file…", description: file.name });
-        const text = await extractText(file);
+        let text = await extractText(file);
         if (!text.trim()) {
           throw new Error("No text could be extracted from this file");
+        }
+        if (text.length > MAX_TEXT_CHARS) {
+          text = text.slice(0, MAX_TEXT_CHARS);
+          toast({
+            title: "Large file: indexing the beginning only",
+            description: `${file.name}: first ${MAX_TEXT_CHARS.toLocaleString()} characters.`,
+          });
         }
 
         // Upload to storage
         const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
         const { error: upErr } = await supabase.storage
-          .from("rag-files")
+          .from(BUCKET)
           .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
         if (upErr) throw upErr;
 
@@ -99,12 +111,18 @@ export const KnowledgeBaseManager: React.FC = () => {
 
         await loadFiles();
 
-        // Ingest (embed) in background
+        // Split into chunks for full-text search (server side, scoped to the user by RLS)
         toast({ title: "Indexing for search…", description: file.name });
-        const { error: fnErr } = await supabase.functions.invoke("ingest-rag-file", {
-          body: { file_id: row.id, text },
+        const res = await fetch("/api/ingest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ file_id: row.id, text }),
         });
-        if (fnErr) throw fnErr;
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.error ?? "Indexing failed");
+        }
 
         toast({ title: "Added to knowledge base", description: file.name });
       } catch (err: any) {
@@ -124,7 +142,7 @@ export const KnowledgeBaseManager: React.FC = () => {
     if (!confirm(`Delete "${file.file_name}" from your knowledge base?`)) return;
     try {
       // Delete storage object (chunks cascade via FK)
-      await supabase.storage.from("rag-files").remove([file.storage_path]);
+      await supabase.storage.from(BUCKET).remove([file.storage_path]);
       const { error } = await supabase.from("rag_files").delete().eq("id", file.id);
       if (error) throw error;
       toast({ title: "Deleted", description: file.file_name });
