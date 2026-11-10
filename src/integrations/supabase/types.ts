@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -12,265 +12,43 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.18"
   }
-  public: {
+  graphql_public: {
     Tables: {
-      chat_messages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          role: string
-          session_id: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          role: string
-          session_id: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          role?: string
-          session_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_messages_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "chat_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_sessions: {
-        Row: {
-          created_at: string
-          id: string
-          preview: string
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          preview?: string
-          title?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          preview?: string
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          display_name: string
-          email: string | null
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          display_name: string
-          email?: string | null
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          display_name?: string
-          email?: string | null
-          id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      rag_chunks: {
-        Row: {
-          chunk_index: number
-          content: string
-          created_at: string
-          embedding: string | null
-          file_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          chunk_index: number
-          content: string
-          created_at?: string
-          embedding?: string | null
-          file_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          chunk_index?: number
-          content?: string
-          created_at?: string
-          embedding?: string | null
-          file_id?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rag_chunks_file_id_fkey"
-            columns: ["file_id"]
-            isOneToOne: false
-            referencedRelation: "rag_files"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rag_files: {
-        Row: {
-          chunk_count: number
-          created_at: string
-          error_message: string | null
-          file_name: string
-          id: string
-          mime_type: string
-          size_bytes: number
-          status: string
-          storage_path: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          chunk_count?: number
-          created_at?: string
-          error_message?: string | null
-          file_name: string
-          id?: string
-          mime_type: string
-          size_bytes?: number
-          status?: string
-          storage_path: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          chunk_count?: number
-          created_at?: string
-          error_message?: string | null
-          file_name?: string
-          id?: string
-          mime_type?: string
-          size_bytes?: number
-          status?: string
-          storage_path?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_settings: {
-        Row: {
-          auto_suggestions: boolean
-          created_at: string
-          creativity_level: number
-          enhance_prompt_template: string
-          id: string
-          preferred_persona: string | null
-          response_length: string
-          search_depth: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          auto_suggestions?: boolean
-          created_at?: string
-          creativity_level?: number
-          enhance_prompt_template?: string
-          id?: string
-          preferred_persona?: string | null
-          response_length?: string
-          search_depth?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          auto_suggestions?: boolean
-          created_at?: string
-          creativity_level?: number
-          enhance_prompt_template?: string
-          id?: string
-          preferred_persona?: string | null
-          response_length?: string
-          search_depth?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
+      graphql: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
         }
-        Returns: boolean
-      }
-      match_rag_chunks: {
-        Args: {
-          match_count?: number
-          match_user_id: string
-          query_embedding: string
-        }
-        Returns: {
-          content: string
-          file_id: string
-          id: string
-          similarity: number
-        }[]
+        Returns: Json
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -396,9 +174,10 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
-    Enums: {
-      app_role: ["admin", "moderator", "user"],
-    },
+    Enums: {},
   },
 } as const
