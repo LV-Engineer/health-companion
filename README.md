@@ -1,234 +1,109 @@
-# Remix of Remix of Health Companion
-
-App Context
-
-This is an additive feature inside an existing patient app.
-
-Patients can ask questions about their own Mediboard records.
-
-Responses include a plain-language explanation plus expandable Sources linked to Mediboard items.
-
-Two “wow” features must be prominent:
-
-Deep Research button (like ChatGPT) that produces a structured mini-report with citations.
-
-Pre-baked prompt chips to start conversations instantly.
-
-Design System
-
-Clean medical app aesthetic: white background, soft neutrals, minimal color accents.
-
-Rounded cards, clear typography, generous spacing.
-
-Accessibility: readable font sizes, high contrast for text.
-
-Use subtle icons (chat, search, document, timeline).
-
-Primary CTA color: calm blue/teal.
-
-Secondary CTA: outline/ghost.
-
-Screens to Generate
-Screen 1: “Ask AI about my health” Entry Point
-
-Purpose: Entry into chatbot from existing app.
-
-Layout:
-
-Top nav bar with Mediboard app shell: logo left, profile icon right.
-
-Page title: “AI Health Assistant”
-
-Short explainer card:
-
-Title: “Ask questions about your own medical history”
-
-Body: “Get clear answers based on your Mediboard records. Read-only. Always check sources.”
-
-Primary button centered: “Start Chat”
-
-For POC demo only, include a small inline field before starting:
-
-Label: “Patient ID (POC only)”
-
-Placeholder: “Enter your patient_id”
-
-Helper text: “In production this uses your login.”
-
-Below, show 3–4 pre-baked prompt chips as examples:
-
-“Summarize my last 12 months of key medical events.”
-
-“Show my cholesterol trend in the last 3 years.”
-
-“What medications and supplements am I currently taking?”
-
-“What changed in my bloodwork since starting [medication]?”
-
-Interaction:
-
-Tapping Start Chat opens Screen 2.
-
-Tapping a chip also opens Screen 2 with that prompt pre-filled/sent.
-
-Screen 2: Chat View (Main Experience)
-
-Purpose: Conversational Q&A over patient records.
-
-Layout:
-
-Header:
-
-Title: “AI Health Assistant”
-
-Right-side small button: “Deep Research” (sparkle/search icon)
-
-Chat area:
-
-Patient messages in right-aligned bubbles.
-
-Assistant messages in left-aligned bubbles.
-
-First assistant welcome message:
-
-“Hi, I can help you understand your Mediboard records. Ask a question or tap a suggestion. I’m not a doctor.”
-
-Show prompt chips above input when chat is empty and also as a collapsible tray:
-
-same chips as Screen 1 plus one more: “List my diagnostic tests in the last 2 years.”
-
-Input bar:
-
-Placeholder: “Ask about visits, tests, meds…”
-
-Send icon.
-
-Example Conversation (preloaded for demo):
-
-Patient: “Show my cholesterol trend in the last 3 years.”
-
-Assistant response card:
-
-Short narrative summary (plain language).
-
-Tiny embedded line chart placeholder labeled “Cholesterol (3y trend)” (no real data needed, just a visual).
-
-CTA row:
-
-“View Sources” (expandable)
-
-“Ask a follow-up”
-
-Sources accordion expanded in demo showing 3 linked items:
-
-“Diagnostic Test: Lipid Panel — 2024-02-12”
-
-“Diagnostic Test: Lipid Panel — 2023-05-09”
-
-“Visit Note — 2022-11-21”
-
-Disclaimer line: “For interpretation or treatment decisions, consult your clinician.”
-
-Error State (secondary example, small):
-
-If a question is out of scope:
-
-Friendly refusal bubble: “I can’t answer that safely. Please discuss with your doctor. Here are relevant records you can review.”
-
-Interactions:
-
-Tapping Deep Research opens Screen 3.
-
-Tapping a source opens a small modal with record snippet + “Open full record” link (mock).
-
-Screen 3: Deep Research Mode (Wow Feature)
-
-Purpose: Produce richer structured report with citations.
-
-Layout:
-
-Header: “Deep Research Report”
-
-Subheader: “Based on your Mediboard records (read-only)”
-
-Timeframe selector row:
-
-Dropdown/pill: “Last 3 years” (default)
-
-Option to change: “Last 12 months / 5 years / Custom”
-
-Generate Report button (primary).
-
-Report Output (preloaded in demo after generation):
-Show a multi-section scrollable report in cards:
-
-Overview
-
-3–5 bullet summary of major events.
-
-Key Findings & Trends
-
-2–3 trend callouts with small chart placeholders.
-
-Medications / Supplements Timeline
-
-Simple vertical timeline UI.
-
-Notable Diagnostic Tests
-
-Table/list with dates and highlights.
-
-Questions to Ask Your Doctor
-
-3 suggested questions.
-
-Sources
-
-Expandable list of cited Mediboard entries (at least 3), same as chat sources.
-
-Safety footer: “This report is informational and not medical advice.”
-
-Interactions:
-
-Back button returns to chat.
-
-Tapping a source opens record modal (same as Screen 2).
-
-Prototype Requirements
-
-Make it feel like it lives inside an existing Mediboard patient app.
-
-Prioritize the two wow features visually:
-
-Deep Research button prominent in chat header.
-
-Pre-baked prompt chips visible on entry and chat.
-
-Use realistic microcopy for trust and safety.
-
-Keep demo lightweight: no clinician features, no write actions.
-
-Ensure flows are clickable between screens.
-
-Generate these 3 screens with linked interactions and preloaded example content for a polished client demo.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/2fc26939-b219-450a-8d83-85503bc81b35).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+# Health Companion
+
+An AI health-assistant chat with a personal document knowledge base: real auth, a server-side chat backend on OpenRouter
+with a forced tool call, answers grounded on the user's uploaded documents, a Supabase data layer with Row Level Security,
+and a Git-based Vercel deployment. All health content is synthetic; this is an engineering exercise, not a medical product.
+
+- **Live:** https://health-companion-ashen.vercel.app (sign in with the test account provided with the task)
+- **Skills:** [`skills/`](skills/README.md) contains runnable playbooks to reproduce this setup on a new project.
+
+## Features
+
+| Surface | What it does |
+|---|---|
+| Chat (`/chat`) | Ask a question, get a Markdown answer (tables included) with a loading state; messages persist |
+| History | Sidebar of the user's conversations (title, date), "New chat", switch and persist per user |
+| Knowledge base (`/knowledge-base`, also in Profile) | Upload `.pdf .docx .txt .md .csv .json` (up to 20 MB), list and delete; answers cite the files they used |
+| Profile (`/settings`) | Account email, editable display name (shown in the user menu), change password, send a reset email |
+| Auth | Sign up, sign in, sign out, forgot/reset password; private pages redirect to sign-in |
+
+## Stack
+
+TypeScript only. Vite + React 18 + Tailwind + shadcn/ui, Supabase (Auth, Postgres, Storage, `@supabase/ssr`),
+Vercel Functions in `api/`, Vercel Routing Middleware (`proxy.ts`), OpenRouter for every model call.
+
+## How it works
+
+```text
+Browser (Vite SPA)
+  |  cookie session (@supabase/ssr)         \
+  |-- Supabase: Auth, Postgres (RLS), Storage \  every read/write runs as the signed-in user
+  |                                           /
+  |-- /api/ingest : chunk extracted text  -> rag_chunks   (user's cookie client, RLS)
+  `-- /api/chat   : retrieve chunks (full-text)
+                    -> one OpenRouter call, tool_choice forces the `answer` tool
+                    -> { reply, usedContext, sources }
+proxy.ts (Routing Middleware): validates the session, refreshes cookies, redirects signed-out visitors to /auth
 ```
+
+- **RLS on every table**, scoped to `auth.uid()`; the service-role key is not used anywhere in the app.
+- **Forced tool calling:** one tool (`answer`), `tool_choice` pinned to it, result read from `tool_calls[0].function.arguments`; no agent loop.
+- **Swappable model:** a single `OPENROUTER_MODEL` value, optional `OPENROUTER_FALLBACK_MODELS` for rate limits.
+- **Retrieval:** Postgres full-text search (`search_rag_chunks`, `security invoker`), so no embedding model is needed.
+
+## Run locally
+
+Prerequisites: Node 20+, a Supabase project, an OpenRouter key, a Vercel account. On Windows turn on Developer Mode
+(needed by the Vercel CLI).
+
+```bash
+npm install
+cp .env.example .env            # PowerShell: Copy-Item .env.example .env
+```
+
+Fill in `.env` (see the table below), then apply the database schema and start the dev server **inside the project folder**:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npx supabase db push --remote
+npx vercel login
+npx vercel link
+npx vercel env pull .env.local
+npx vercel dev                   # serves the SPA and /api on http://localhost:3000
+```
+
+`npm run dev` alone starts only Vite and does **not** serve `/api`. Add `http://localhost:3000/**` to the Supabase Auth redirect URLs.
+Create a test user in Supabase (Authentication > Users > Add user, Auto Confirm) after the migration was applied.
+
+### Environment variables
+
+| Variable | Where | Purpose |
+|---|---|---|
+| `VITE_SUPABASE_URL` | client + server | Supabase project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | client + server | Publishable (formerly anon) key; protected by RLS |
+| `OPENROUTER_API_KEY` | server only | OpenRouter key; never reaches the browser |
+| `OPENROUTER_MODEL` | server only | Primary model id, for example a `:free` model that supports tools |
+| `OPENROUTER_FALLBACK_MODELS` | server only, optional | Comma-separated fallback model ids |
+| `SUPABASE_SERVICE_ROLE_KEY` | server only, optional | Not used by the app; keep it out of the client if you add admin tasks |
+
+Secrets are configured in the Vercel project (Settings > Environment Variables) and in your local, gitignored `.env`; nothing secret is committed.
+
+## Try the grounding
+
+1. Sign in, open **Knowledge Base**, upload [`samples/aurora-wellness-guide.md`](samples/aurora-wellness-guide.md).
+2. In a new chat ask: *How many steps per day does Aurora Clinic recommend?*
+3. The answer contains **7,431** and ends with `Sources: aurora-wellness-guide.md`. Delete the file and ask again: the fact and the source are gone.
+
+## Project layout
+
+```text
+api/                 Vercel Functions: chat.ts, ingest.ts, _lib/ (OpenRouter client, tool, chunking, Supabase server client)
+proxy.ts             Routing Middleware (session check, redirect to /auth)
+src/                 SPA: pages, components, hooks, Supabase client
+supabase/migrations/ SQL schema, RLS policies, Storage bucket
+samples/             Synthetic document for the grounding demo
+skills/              Reproduction playbooks (SKILL.md + snippets)
+vercel.json          SPA rewrite, function timeout, middleware registration
+```
+
+## Deploy
+
+Push to `main` (through a pull request): Vercel deploys automatically through its Git integration; no CLI deploys.
+Details and checks are in [`skills/vercel-deploy`](skills/vercel-deploy/SKILL.md).
+
+## Notes
+
+- Built from a Lovable starter. Lovable's hosted backend and Edge Functions were replaced; unused screens were removed.
+- Free OpenRouter models share upstream rate limits: the API answers `429` with a friendly message and can fall back to other models.
+- `npm audit` reports advisories in the starter's dependency tree; they were not addressed as part of this exercise.
