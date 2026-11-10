@@ -1,30 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
 import { KnowledgeBaseManager } from '@/components/settings/KnowledgeBaseManager';
 
+// Signed-out users never reach this page: the route is wrapped in RequireAuth.
 const KnowledgeBasePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
-
-  useEffect(() => {
-    if (!loading && !user) navigate('/auth');
-  }, [user, loading, navigate]);
 
   const handleBack = () => navigate(-1);
-
-  if (loading) {
-    return (
-      <AppShell title="Knowledge Base" showBack onBack={handleBack} backTooltip="Go back to chat">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell title="Knowledge Base" showBack onBack={handleBack} backTooltip="Go back to chat">
