@@ -16,15 +16,23 @@ const ResetPassword: React.FC = () => {
   const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
-    // Check for recovery token in URL hash
-    const hash = window.location.hash;
-    const type = new URLSearchParams(hash.substring(1)).get('type');
-    if (type === 'recovery') {
-      setIsRecovery(true);
-    } else {
-      // If not a recovery link, redirect to auth
-      navigate('/auth');
-    }
+    // The SSR client uses the PKCE flow: the reset link carries ?code=..., not a #type=recovery hash.
+    // The client exchanges the code on load and emits PASSWORD_RECOVERY.
+    let recovered = false;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        recovered = true;
+        setIsRecovery(true);
+      }
+    });
+    // Not a valid recovery link: send the user back to sign-in.
+    const timer = setTimeout(() => {
+      if (!recovered) navigate('/auth');
+    }, 4000);
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
