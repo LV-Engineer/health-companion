@@ -120,12 +120,16 @@ const ChatView: React.FC = () => {
     ];
 
     try {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: { messages: history.map((m) => ({ role: m.role, content: m.content })) },
+      // Same-origin call to the Vercel Function; the session cookie identifies the user.
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ messages: history.map((m) => ({ role: m.role, content: m.content })) }),
       });
-      if (error) throw error;
-      if (data?.error) {
-        toast.error(data.error);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || data?.error) {
+        toast.error(data?.error ?? 'Failed to get a response');
         return;
       }
 
