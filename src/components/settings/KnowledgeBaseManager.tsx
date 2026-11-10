@@ -6,6 +6,16 @@ import { useToast } from "@/hooks/use-toast";
 import { extractText } from "@/lib/extractText";
 import { Upload, Trash2, FileText, Loader2, CheckCircle2, AlertCircle, Database } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface RagFile {
   id: string;
@@ -40,6 +50,8 @@ export const KnowledgeBaseManager: React.FC = () => {
   const [files, setFiles] = useState<RagFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<RagFile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadFiles = useCallback(async () => {
     if (!user) return;
@@ -138,8 +150,10 @@ export const KnowledgeBaseManager: React.FC = () => {
     setUploading(false);
   };
 
-  const handleDelete = async (file: RagFile) => {
-    if (!confirm(`Delete "${file.file_name}" from your knowledge base?`)) return;
+  const handleDelete = async () => {
+    const file = fileToDelete;
+    if (!file) return;
+    setDeleting(true);
     try {
       // Delete storage object (chunks cascade via FK)
       await supabase.storage.from(BUCKET).remove([file.storage_path]);
@@ -149,6 +163,9 @@ export const KnowledgeBaseManager: React.FC = () => {
       loadFiles();
     } catch (err: any) {
       toast({ title: "Failed to delete", description: err?.message, variant: "destructive" });
+    } finally {
+      setDeleting(false);
+      setFileToDelete(null);
     }
   };
 
@@ -226,13 +243,44 @@ export const KnowledgeBaseManager: React.FC = () => {
                     )}
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(f)} title="Delete">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setFileToDelete(f)}
+                  title="Delete"
+                  aria-label={`Delete ${f.file_name}`}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </li>
             ))}
           </ul>
         )}
+
+        <AlertDialog open={fileToDelete !== null} onOpenChange={(open) => !open && !deleting && setFileToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this document?</AlertDialogTitle>
+              <AlertDialogDescription>
+                "{fileToDelete?.file_name}" will be removed from your knowledge base, together with its
+                indexed text. The assistant will no longer use it to answer questions. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={deleting}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDelete();
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );
