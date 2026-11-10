@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useChatHistory } from '@/hooks/useChatHistory';
+import { DEFAULT_TITLE, useChatHistory } from '@/hooks/useChatHistory';
 import { UserDropdown } from '@/components/layout/UserDropdown';
 import { AppShell } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/button';
@@ -152,6 +152,14 @@ const ChatView: React.FC = () => {
   };
 
   const handleNewChat = async () => {
+    // Reuse an untouched conversation instead of piling up blank ones.
+    const blank = sessions.find((s) => !s.preview && s.title === DEFAULT_TITLE);
+    if (blank) {
+      if (blank.id !== sessionId) navigate(`/chat/${blank.id}`);
+      inputRef.current?.focus();
+      return;
+    }
+
     const session = await createSession();
     if (!session) {
       toast.error('Could not start a new chat');
