@@ -1,5 +1,11 @@
 import { requireUser } from './_lib/supabase';
-import { OPENROUTER_API_URL, fetchWithRetry, getModel } from './_lib/openrouter';
+import {
+  OPENROUTER_API_URL,
+  OpenRouterError,
+  fetchWithRetry,
+  getFallbackModels,
+  getModel,
+} from './_lib/openrouter';
 import { chatTool } from './_lib/chatTool';
 
 export const runtime = 'nodejs';
@@ -61,6 +67,9 @@ async function handle(request: Request): Promise<Response> {
     const found = chunks ?? [];
     const context = found.map((c, i) => `[Source ${i + 1}]\n${c.content}`).join('\n\n---\n\n');
 
+    const primaryModel = getModel();
+    const fallbackModels = getFallbackModels();
+    let failureStatus = 0;
     const res = await fetchWithRetry(OPENROUTER_API_URL, {
       method: 'POST',
       headers: {
@@ -68,7 +77,8 @@ async function handle(request: Request): Promise<Response> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: getModel(),
+        model: primaryModel,
+        ...(fallbackModels.length > 0 && { models: fallbackModels }),
         messages: [
           {
             role: 'system',
@@ -81,15 +91,21 @@ async function handle(request: Request): Promise<Response> {
       }),
     }).catch((error) => {
       console.error(error);
+      failureStatus = error instanceof OpenRouterError ? error.status : 0;
       return null;
     });
 
     if (!res || !res.ok) {
-      const message = res?.status === 429 ? 'Rate limited, try again shortly.' : 'AI service unavailable.';
-      return json({ error: message }, 502);
+      // Free models share rate limits upstream: tell the user it is temporary instead of "broken".
+      const busy = (res?.status ?? failureStatus) === 429;
+      return json(
+        { error: busy ? 'The AI model is busy right now. Please try again in a moment.' : 'AI service unavailable.' },
+        busy ? 429 : 502,
+      );
     }
 
     const data = await res.json();
+    console.log('chat model used:', data.model);
     const message = data.choices?.[0]?.message;
     let result: { reply?: string; cited_sources?: number[] } = {};
     try {
