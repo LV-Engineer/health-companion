@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useChatHistory } from '@/hooks/useChatHistory';
 import { UserDropdown } from '@/components/layout/UserDropdown';
 import { AppShell } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/button';
@@ -18,117 +19,146 @@ interface Message {
   content: string;
 }
 
-interface ChatSession {
-  id: string;
-  title: string;
-  date: string;
-  preview: string;
-  messages: Message[];
-}
+const GREETING =
+  "Hi! Ask me anything. I'll answer in formatted markdown (with tables when useful). If you've uploaded files to your knowledge base in **Account → Profile**, I'll use them to ground my answers.";
 
-const initialMessage: Message = {
-  id: '1',
-  role: 'assistant',
-  content:
-    "Hi! Ask me anything. I'll answer in formatted markdown (with tables when useful). If you've uploaded files to your knowledge base in **Account → Profile**, I'll use them to ground my answers.",
-};
-
-const makeSession = (): ChatSession => ({
-  id: `session-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-  title: 'New chat',
-  date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-  preview: 'No messages yet',
-  messages: [initialMessage],
-});
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
 const ChatView: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { sessionId } = useParams<{ sessionId: string }>();
   const { user, loading: authLoading } = useAuth();
+  const { sessions, loadedFor, createSession, loadMessages, appendMessage } =
+    useChatHistory();
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const bootstrapped = useRef(false);
 
   const [inputValue, setInputValue] = useState('');
   const [historyOpen, setHistoryOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(true);
 
-  const initialSession = makeSession();
-  const [sessions, setSessions] = useState<ChatSession[]>([initialSession]);
-  const [activeSessionId, setActiveSessionId] = useState<string>(initialSession.id);
-
-  const activeSession = sessions.find((s) => s.id === activeSessionId) ?? sessions[0];
-  const messages = activeSession?.messages ?? [initialMessage];
-
+  // Opening /chat with no conversation in the address: show the most recent
+  // one, or start a fresh one. Waits until this user's list has actually
+  // arrived, and is guarded so it only ever runs once.
   useEffect(() => {
-    const initialPrompt = location.state?.initialPrompt;
-    if (initialPrompt) {
-      handleSendMessage(initialPrompt);
+    if (authLoading || !user || loadedFor !== user.id || sessionId || bootstrapped.current) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    bootstrapped.current = true;
+
+    if (sessions.length > 0) {
+      navigate(`/chat/${sessions[0].id}`, { replace: true });
+      return;
+    }
+    createSession().then((session) => {
+      if (session) {
+        navigate(`/chat/${session.id}`, { replace: true });
+      } else {
+        bootstrapped.current = false;
+        toast.error('Could not start a new chat');
+      }
+    });
+  }, [authLoading, user, loadedFor, sessionId, sessions, createSession, navigate]);
+
+  // Load whichever conversation the address names.
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+
+    setLoadingMessages(true);
+    setMessages([]);
+    loadMessages(sessionId).then((rows) => {
+      if (cancelled) return;
+      if (rows === null) {
+        toast.error('Could not load this chat. Try opening it again.');
+      } else {
+        setMessages(rows.map((r) => ({ id: r.id, role: r.role, content: r.content })));
+      }
+      setLoadingMessages(false);
+      inputRef.current?.focus();
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId, loadMessages]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  const updateActiveSession = (updater: (s: ChatSession) => ChatSession) => {
-    setSessions((prev) => prev.map((s) => (s.id === activeSessionId ? updater(s) : s)));
-  };
-
   const handleSendMessage = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || isLoading) return;
+    if (!trimmed || isLoading || !sessionId) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: trimmed,
-    };
-    const nextMessages = [...messages, userMessage];
-    updateActiveSession((s) => ({
-      ...s,
-      messages: nextMessages,
-      title: s.title === 'New chat' ? trimmed.slice(0, 40) : s.title,
-      preview: trimmed.slice(0, 60),
-    }));
     setInputValue('');
     setIsLoading(true);
 
+    // Show the question right away, then keep the saved row's id.
+    const pendingId = `pending-${Date.now()}`;
+    setMessages((prev) => [...prev, { id: pendingId, role: 'user', content: trimmed }]);
+
+    const savedUser = await appendMessage(sessionId, 'user', trimmed);
+    if (!savedUser) {
+      setMessages((prev) => prev.filter((m) => m.id !== pendingId));
+      setIsLoading(false);
+      toast.error('Your message was not saved. Check your connection and try again.');
+      return;
+    }
+    setMessages((prev) =>
+      prev.map((m) => (m.id === pendingId ? { ...m, id: savedUser.id } : m)),
+    );
+
+    const history: Message[] = [
+      ...messages,
+      { id: savedUser.id, role: 'user', content: trimmed },
+    ];
+
     try {
       const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
-        },
+        body: { messages: history.map((m) => ({ role: m.role, content: m.content })) },
       });
       if (error) throw error;
       if (data?.error) {
         toast.error(data.error);
         return;
       }
+
       const reply: string = data?.reply ?? '';
-      updateActiveSession((s) => ({
-        ...s,
-        messages: [
-          ...s.messages,
-          { id: (Date.now() + 1).toString(), role: 'assistant', content: reply },
-        ],
-      }));
-    } catch (err: any) {
+      const savedReply = await appendMessage(sessionId, 'assistant', reply);
+      setMessages((prev) => [
+        ...prev,
+        { id: savedReply?.id ?? `unsaved-${Date.now()}`, role: 'assistant', content: reply },
+      ]);
+      if (!savedReply) {
+        toast.error('This reply is shown but was not saved to your chat history.');
+      }
+    } catch (err) {
       console.error(err);
-      toast.error(err?.message || 'Failed to get a response');
+      toast.error(err instanceof Error ? err.message : 'Failed to get a response');
     } finally {
       setIsLoading(false);
+      inputRef.current?.focus();
     }
   };
 
-  const handleNewChat = () => {
-    const s = makeSession();
-    setSessions((prev) => [s, ...prev]);
-    setActiveSessionId(s.id);
+  const handleNewChat = async () => {
+    const session = await createSession();
+    if (!session) {
+      toast.error('Could not start a new chat');
+      return;
+    }
+    navigate(`/chat/${session.id}`);
+    inputRef.current?.focus();
   };
 
   const handleSelectSession = (id: string) => {
-    setActiveSessionId(id);
+    if (id !== sessionId) navigate(`/chat/${id}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -145,14 +175,20 @@ const ChatView: React.FC = () => {
       </div>
     );
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-surface-subtle">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   const sidebarSessions = sessions.map((s) => ({
     id: s.id,
     title: s.title,
-    date: s.date,
-    preview: s.preview,
-    isActive: s.id === activeSessionId,
+    date: formatDate(s.updated_at),
+    preview: s.preview || 'No messages yet',
+    isActive: s.id === sessionId,
   }));
 
   return (
@@ -187,15 +223,28 @@ const ChatView: React.FC = () => {
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-4">
-          {messages.map((message) => (
-            <ChatBubble key={message.id} role={message.role}>
-              {message.role === 'assistant' ? (
-                <MarkdownMessage content={message.content} />
-              ) : (
-                <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          {loadingMessages ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <>
+              {messages.length === 0 && (
+                <ChatBubble role="assistant">
+                  <MarkdownMessage content={GREETING} />
+                </ChatBubble>
               )}
-            </ChatBubble>
-          ))}
+              {messages.map((message) => (
+                <ChatBubble key={message.id} role={message.role}>
+                  {message.role === 'assistant' ? (
+                    <MarkdownMessage content={message.content} />
+                  ) : (
+                    <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  )}
+                </ChatBubble>
+              ))}
+            </>
+          )}
           {isLoading && (
             <ChatBubble role="assistant">
               <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -217,11 +266,11 @@ const ChatView: React.FC = () => {
               placeholder="Ask a question…"
               rows={1}
               className="resize-none min-h-[44px] max-h-40"
-              disabled={isLoading}
+              disabled={isLoading || !sessionId}
             />
             <Button
               onClick={() => handleSendMessage(inputValue)}
-              disabled={isLoading || !inputValue.trim()}
+              disabled={isLoading || !inputValue.trim() || !sessionId}
               size="icon"
               className="h-11 w-11 flex-shrink-0"
             >

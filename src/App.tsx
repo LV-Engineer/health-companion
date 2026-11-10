@@ -25,6 +25,7 @@ const App = () => (
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/chat" element={<ChatView />} />
+          <Route path="/chat/:sessionId" element={<ChatView />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
           <Route path="/admin" element={<AdminView />} />
