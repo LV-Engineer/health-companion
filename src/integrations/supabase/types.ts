@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -11,6 +11,31 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.18"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -87,7 +112,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          display_name: string
+          display_name?: string
           email?: string | null
           id?: string
           updated_at?: string
@@ -108,8 +133,8 @@ export type Database = {
           chunk_index: number
           content: string
           created_at: string
-          embedding: string | null
           file_id: string
+          fts: unknown
           id: string
           user_id: string
         }
@@ -117,8 +142,8 @@ export type Database = {
           chunk_index: number
           content: string
           created_at?: string
-          embedding?: string | null
           file_id: string
+          fts?: unknown
           id?: string
           user_id: string
         }
@@ -126,8 +151,8 @@ export type Database = {
           chunk_index?: number
           content?: string
           created_at?: string
-          embedding?: string | null
           file_id?: string
+          fts?: unknown
           id?: string
           user_id?: string
         }
@@ -183,27 +208,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_settings: {
         Row: {
           auto_suggestions: boolean
@@ -248,29 +252,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      match_rag_chunks: {
-        Args: {
-          match_count?: number
-          match_user_id: string
-          query_embedding: string
-        }
+      search_rag_chunks: {
+        Args: { match_count?: number; q: string }
         Returns: {
           content: string
           file_id: string
           id: string
-          similarity: number
+          rank: number
         }[]
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -396,9 +389,10 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
-    Enums: {
-      app_role: ["admin", "moderator", "user"],
-    },
+    Enums: {},
   },
 } as const
