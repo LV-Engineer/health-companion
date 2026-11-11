@@ -1,5 +1,8 @@
 // One tool whose parameters are the shape we want back. tool_choice forces the model to call it,
 // so the answer arrives as JSON in tool_calls[0].function.arguments, never as free text to parse.
+//
+// The answer is an array of lines, not one multi-line string: some free models/providers cut a
+// string argument at its first line break, which turned tables into a lone header row.
 export const chatTool = {
   type: 'function' as const,
   function: {
@@ -8,9 +11,12 @@ export const chatTool = {
     parameters: {
       type: 'object',
       properties: {
-        reply: {
-          type: 'string',
-          description: 'The answer in Markdown. Use tables when they help.',
+        reply_lines: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'The answer in Markdown, one array item per line. Use an empty string for a blank line. ' +
+            'Use tables when they help (one table row per item).',
         },
         cited_sources: {
           type: 'array',
@@ -18,7 +24,7 @@ export const chatTool = {
           description: 'Numbers of the [Source n] excerpts you actually used. Empty if none.',
         },
       },
-      required: ['reply', 'cited_sources'],
+      required: ['reply_lines', 'cited_sources'],
     },
   },
 };

@@ -107,7 +107,7 @@ async function handle(request: Request): Promise<Response> {
     const data = await res.json();
     console.log('chat model used:', data.model);
     const message = data.choices?.[0]?.message;
-    let result: { reply?: string; cited_sources?: number[] } = {};
+    let result: { reply_lines?: unknown; reply?: string; cited_sources?: number[] } = {};
     try {
       result = JSON.parse(message?.tool_calls?.[0]?.function?.arguments ?? '{}');
     } catch {
@@ -115,7 +115,10 @@ async function handle(request: Request): Promise<Response> {
     }
 
     // Some models ignore tool_choice and answer as plain text; keep the app working.
-    let reply = result.reply || message?.content || '';
+    const linesReply = Array.isArray(result.reply_lines)
+      ? result.reply_lines.filter((line): line is string => typeof line === 'string').join('\n')
+      : '';
+    let reply = linesReply || result.reply || message?.content || '';
     if (!reply) return json({ error: 'The model returned an empty answer.' }, 502);
 
     const cited = (result.cited_sources ?? []).filter((n) => Number.isInteger(n) && found[n - 1]);
@@ -123,7 +126,8 @@ async function handle(request: Request): Promise<Response> {
     let names: string[] = [];
     if (fileIds.length > 0) {
       const { data: files } = await auth.supabase.from('rag_files').select('file_name').in('id', fileIds);
-      names = (files ?? []).map((f) => f.file_name);
+      // The same document may be uploaded twice; list each name once.
+      names = [...new Set((files ?? []).map((f) => f.file_name))];
     }
     if (names.length > 0) reply += `\n\n**Sources:** ${names.join(', ')}`;
 
