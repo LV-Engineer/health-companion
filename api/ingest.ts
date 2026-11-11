@@ -1,5 +1,5 @@
-import { requireUser } from './_lib/supabase';
-import { chunkText } from './_lib/chunk';
+import { requireUser } from './_lib/supabase.js';
+import { chunkText } from './_lib/chunk.js';
 
 export const runtime = 'nodejs';
 
