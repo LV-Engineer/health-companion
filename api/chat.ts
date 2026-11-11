@@ -1,12 +1,12 @@
-import { requireUser } from './_lib/supabase';
+import { requireUser } from './_lib/supabase.js';
 import {
   OPENROUTER_API_URL,
   OpenRouterError,
   fetchWithRetry,
   getFallbackModels,
   getModel,
-} from './_lib/openrouter';
-import { chatTool } from './_lib/chatTool';
+} from './_lib/openrouter.js';
+import { chatTool } from './_lib/chatTool.js';
 
 export const runtime = 'nodejs';
 
