@@ -12,7 +12,10 @@ export const runtime = 'nodejs';
 
 const SYSTEM_PROMPT =
   'You are a health assistant for a demo with synthetic data, not a medical product. ' +
-  'Answer in Markdown. Prefer the provided sources; if they do not contain the answer, say so.';
+  'Answer in Markdown and follow the format the user asks for (for example a table). ' +
+  'Prefer the provided sources when they are relevant. If they do not cover the question, say briefly ' +
+  'that the uploaded documents do not cover it, then answer from general knowledge. ' +
+  'Only cite sources you actually used.';
 
 const MAX_MESSAGES = 40;
 const MAX_CONTENT_LENGTH = 8000;
