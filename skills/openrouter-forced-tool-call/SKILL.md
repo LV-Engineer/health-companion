@@ -25,7 +25,7 @@ OPENROUTER_FALLBACK_MODELS=<id1>,<id2>      # optional
 
 ## 2. The pattern
 
-- **Define one tool** whose `parameters` are the shape you want back (`snippets/chatTool.ts`). Here: `reply` (Markdown string) and `cited_sources` (integers).
+- **Define one tool** whose `parameters` are the shape you want back (`snippets/chatTool.ts`). Here: `reply_lines` (the Markdown answer as an array of lines, because some free models cut a multi-line string at its first line break) and `cited_sources` (integers). The route joins the lines with a line break (`"\n"`).
 - **Force it** with `tool_choice: { type: 'function', function: { name: 'answer' } }`. One request, one turn, no loop.
 - **Read the result** from `choices[0].message.tool_calls[0].function.arguments` and `JSON.parse` it.
 - **Keep the model swappable:** `model: process.env.OPENROUTER_MODEL`. OpenRouter normalises tool calling across Claude, GPT and Gemini, so the code never changes.
