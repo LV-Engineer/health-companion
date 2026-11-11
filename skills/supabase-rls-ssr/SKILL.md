@@ -26,10 +26,10 @@ Snippets (copy as-is, adjust names): `snippets/init.sql`, `browser-client.ts`, `
 ```text
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<publishable key>      # public, protected by RLS
-SUPABASE_SERVICE_ROLE_KEY=<secret key>                # server only, only if you really need it
 ```
 
-Never prefix the secret key with `VITE_`. Commit `.env.example` (names only), never `.env`.
+The secret key (old `service_role`) is **not needed** for this setup: RLS plus the user's cookie client cover every read and write.
+If you ever add an admin task, keep the secret key server-only, never prefix it with `VITE_`, and never use it in a route that acts for a user. Commit `.env.example` (names only), never `.env`.
 
 ## 3. Migrations (never click tables together in the dashboard)
 
