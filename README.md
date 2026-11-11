@@ -75,7 +75,6 @@ Create a test user in Supabase (Authentication > Users > Add user, Auto Confirm)
 | `OPENROUTER_API_KEY` | server only | OpenRouter key; never reaches the browser |
 | `OPENROUTER_MODEL` | server only | Primary model id, for example a `:free` model that supports tools |
 | `OPENROUTER_FALLBACK_MODELS` | server only, optional | Comma-separated fallback model ids |
-| `SUPABASE_SERVICE_ROLE_KEY` | server only, optional | Not used by the app; keep it out of the client if you add admin tasks |
 
 Secrets are configured in the Vercel project (Settings > Environment Variables) and in your local, gitignored `.env`; nothing secret is committed.
 

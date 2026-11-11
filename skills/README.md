@@ -24,5 +24,5 @@ Each skill ends with a **Gotchas** section: the failures that actually happened,
 
 - TypeScript everywhere (no Python), npm as the only package manager.
 - One branch per logical step, Conventional Commits, pull request with a merge commit, annotated tags at milestones.
-- Server-only values (`OPENROUTER_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) never carry a `VITE_` prefix and never reach the browser.
+- Server-only values (`OPENROUTER_API_KEY`, and any Supabase secret key you might add) never carry a `VITE_` prefix and never reach the browser.
 - Tests use synthetic data only; test credentials are never committed.
